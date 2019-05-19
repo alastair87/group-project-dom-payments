@@ -71,19 +71,20 @@ document.querySelector("#loadButton").addEventListener("click", function() {
  * @param {Object} account The account details
  */
 function render(account) {
-  const totalIncome = calculateTotalIncome(account);
+  const totalIncomeForMonth = calculateTotalIncomeForMonth(account, 5);
+  const accountBalance = calculateAccountBalance(account);
 
   // Display the account number
   document.querySelector("#accountNumber").innerText = account.number;
 
   // Display the account balance
   document.querySelector("#balanceAmount").innerText = buildCashString(
-    account.initialBalance + totalIncome
+    accountBalance
   );
 
   // Display the total income
   document.querySelector("#totalIncome").innerText = buildCashString(
-    totalIncome
+    totalIncomeForMonth
   );
 }
 
@@ -96,11 +97,18 @@ function render(account) {
  * add up payments, and more.
  */
 
-const calculateTotalIncome = account =>
-  account.payments.reduce(
-    (accumulator, payment) =>
-      accumulator + (payment.completed ? payment.amount : 0),
-    0
-  );
+const calculateAccountBalance = account =>
+  account.initialBalance +
+  [...account.payments]
+    .filter(payment => payment.completed)
+    .reduce((accumulator, payment) => accumulator + payment.amount, 0);
+
+const calculateTotalIncomeForMonth = (account, month) =>
+  [...account.payments]
+    .filter(
+      payment =>
+        new Date(payment.date).getMonth() + 1 == month && payment.completed
+    )
+    .reduce((accumulator, payment) => accumulator + payment.amount, 0);
 
 const buildCashString = cashAmount => "£" + cashAmount.toFixed(2);
