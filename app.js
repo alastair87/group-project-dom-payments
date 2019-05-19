@@ -72,6 +72,7 @@ document.querySelector("#loadButton").addEventListener("click", function() {
  */
 function render(account) {
   const totalIncome = calculateTotalIncome(account);
+  const mostValuablePayment = getMostValuablePayment(account);
 
   // Display the account number
   document.querySelector("#accountNumber").innerText = account.number;
@@ -84,6 +85,11 @@ function render(account) {
   // Display the total income
   document.querySelector("#totalIncome").innerText = buildCashString(
     totalIncome
+  );
+
+  // Display the most valuable payment
+  document.querySelector("#mostValuablePayment").innerText = buildCashString(
+    mostValuablePayment
   );
 }
 
@@ -102,5 +108,8 @@ const calculateTotalIncome = account =>
       accumulator + (payment.completed ? payment.amount : 0),
     0
   );
+
+const getMostValuablePayment = account =>
+  Math.max(...account.payments.map(payment => payment.amount), 0);
 
 const buildCashString = cashAmount => "£" + cashAmount.toFixed(2);
