@@ -77,11 +77,14 @@ function render(account) {
   document.querySelector("#accountNumber").innerText = account.number;
 
   // Display the account balance
-  document.querySelector("#balanceAmount").innerText =
-    "£" + (account.initialBalance + totalIncome);
+  document.querySelector("#balanceAmount").innerText = buildCashString(
+    account.initialBalance + totalIncome
+  );
 
   // Display the total income
-  document.querySelector("#totalIncome").innerText = "£" + totalIncome;
+  document.querySelector("#totalIncome").innerText = buildCashString(
+    totalIncome
+  );
 }
 
 /**
@@ -94,10 +97,10 @@ function render(account) {
  */
 
 const calculateTotalIncome = account =>
-  account.payments
-    .reduce(
-      (accumulator, payment) =>
-        accumulator + (payment.completed ? payment.amount : 0),
-      0
-    )
-    .toFixed(2);
+  account.payments.reduce(
+    (accumulator, payment) =>
+      accumulator + (payment.completed ? payment.amount : 0),
+    0
+  );
+
+const buildCashString = cashAmount => "£" + cashAmount.toFixed(2);
