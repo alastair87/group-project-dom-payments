@@ -73,6 +73,10 @@ document.querySelector("#loadButton").addEventListener("click", function() {
 function render(account) {
   const totalIncomeForMonth = calculateTotalIncomeForMonth(account, 5);
   const accountBalance = calculateAccountBalance(account);
+  const mostValuablePaymentForMonth = getMostValuablePaymentForMonth(
+    account,
+    5
+  );
 
   // Display the account number
   document.querySelector("#accountNumber").innerText = account.number;
@@ -89,7 +93,7 @@ function render(account) {
 
   // Display the most valuable payment
   document.querySelector("#mostValuablePayment").innerText = buildCashString(
-    mostValuablePayment
+    mostValuablePaymentForMonth
   );
 }
 
@@ -116,7 +120,12 @@ const calculateTotalIncomeForMonth = (account, month) =>
     )
     .reduce((accumulator, payment) => accumulator + payment.amount, 0);
 
-const getMostValuablePayment = account =>
-  Math.max(...account.payments.map(payment => payment.amount), 0);
+const getMostValuablePaymentForMonth = (account, month) =>
+  Math.max(
+    ...[...account.payments]
+      .filter(payment => new Date(payment.date).getMonth() + 1 == month)
+      .map(payment => payment.amount),
+    0
+  );
 
 const buildCashString = cashAmount => "£" + cashAmount.toFixed(2);
