@@ -36,7 +36,7 @@
 var account = {
   number: 100402153,
   initialBalance: 100,
-  paymentsUrl: '/data/payments.json',
+  paymentsUrl: "/data/payments.json",
   payments: []
 };
 
@@ -48,15 +48,14 @@ var account = {
  *
  * You may edit this code.
  */
-document.querySelector('#loadButton')
-  .addEventListener('click', function () {
-    fetch(account.paymentsUrl)
-      .then(response => response.json())
-      .then(payments => {
-        account.payments = payments;
-        render(account);
-      });
-  });
+document.querySelector("#loadButton").addEventListener("click", function() {
+  fetch(account.paymentsUrl)
+    .then(response => response.json())
+    .then(payments => {
+      account.payments = payments;
+      render(account);
+    });
+});
 
 /**
  * Write a render function below that updates the DOM with the
@@ -72,12 +71,24 @@ document.querySelector('#loadButton')
  * @param {Object} account The account details
  */
 function render(account) {
-
   // Display the account number
-  document.querySelector('#accountNumber')
-    .innerText = account.number;
-};
+  renderAccountNumber(account);
 
+  // calculate and render balance
+  renderCurrentBalance(account);
+
+  // render list of payments
+  renderPayments(account);
+
+  // render total income for this month
+  renderTotalIncome(account);
+
+  // render pendingBalance
+  renderPendingBalance(account);
+
+  // render most valuable payment
+  renderMostValuablePayment(account);
+}
 /**
  * Write any additional functions that you need to complete
  * the group project in the space below.
@@ -86,3 +97,93 @@ function render(account) {
  * calculate balances, find completed or pending payments,
  * add up payments, and more.
  */
+
+function renderAccountNumber(account) {
+  document.querySelector("#accountNumber").innerText = account.number;
+}
+
+function renderCurrentBalance(account) {
+  const currentBalance = asGBP(
+    account.initialBalance +
+      account.payments
+        .filter(payment => payment.completed)
+        .map(payment => payment.amount)
+        .reduce((a, b) => a + b)
+  );
+  document.querySelector("#balanceAmount").innerText = currentBalance;
+}
+
+function renderPendingBalance(account) {
+  const pendingBalance = asGBP(
+    account.initialBalance +
+      account.payments.map(payment => payment.amount).reduce((a, b) => a + b)
+  );
+  document.querySelector("#pendingBalance").innerText = pendingBalance;
+}
+
+function renderPayments(account) {
+  const list = document.querySelector("#paymentsList");
+  list.innerHTML = "";
+
+  let i = 0;
+  account.payments.forEach(renderPayment);
+
+  function renderPayment(payment) {
+    payment.index = i++;
+    const tr = list.insertRow();
+    tr.insertCell().innerText = payment.date;
+    tr.insertCell().innerText = payment.completed ? "Completed" : "Pending";
+    tr.insertCell().innerText = payment.description;
+    tr.insertCell().innerText = asGBP(payment.amount);
+    if (!payment.completed) {
+      tr.classList.add("pending");
+      addCancelBtn(payment);
+    }
+
+    function addCancelBtn(payment) {
+      const cancelBtn = document.createElement("button");
+      cancelBtn.innerText = "Cancel";
+      cancelBtn.addEventListener("click", () => {
+        account.payments = account.payments.filter(
+          payment1 => payment1.index !== payment.index
+        );
+        render(account);
+      });
+      tr.insertCell().appendChild(cancelBtn);
+    }
+  }
+}
+
+function renderMostValuablePayment(account) {
+  const mostValuablePayment = asGBP(
+    account.payments
+      .filter(payment => filterByMonth(payment.date, "05", "2019"))
+      .map(payment => payment.amount)
+      .reduce((a, b) => Math.max(a, b))
+  );
+  document.querySelector(
+    "#mostValuablePayment"
+  ).innerText = mostValuablePayment;
+}
+
+function renderTotalIncome(account) {
+  const totalIncome = asGBP(
+    account.payments
+      .filter(
+        payment =>
+          filterByMonth(payment.date, "05", "2019") && payment.completed
+      )
+      .map(payment => payment.amount)
+      .reduce((a, b) => a + b)
+  );
+  document.querySelector("#totalIncome").innerText = totalIncome;
+}
+
+function asGBP(amount) {
+  return "£" + amount.toFixed(2);
+}
+
+function filterByMonth(date, month, year) {
+  const splitDate = date.split("-");
+  return splitDate[0] === year && splitDate[1] === month;
+}
